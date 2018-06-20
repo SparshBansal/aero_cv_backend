@@ -30,8 +30,8 @@ class CameraFeed:
         self.__dict__.update(locals())
 
         # setup firebase credentials
-        cred = credentials.Certificate('/home/sparsh/Camerafeed/firebase_credentials.json')
-        default_app = firebase_admin.initialize_app(cred , {'databaseURL' : 'https://throughputcalc.firebaseio.com'})
+        # cred = credentials.Certificate('/Users/newuser/Documents/People Tracking/aero_cv_backend/firebase_credentials.json')
+        # default_app = firebase_admin.initialize_app(cred , {'databaseURL' : 'https://throughputcalc.firebaseio.com'})
         
 
     def go_config(self, config_path=None):
@@ -42,6 +42,10 @@ class CameraFeed:
 
         # remote host settings
         self.endpoint = config.get('host', 'endpoint', fallback=None)
+
+        cred = credentials.Certificate(config.get('host', 'firebase_credentials_path'))
+        default_app = firebase_admin.initialize_app(cred , {'databaseURL' : 'https://throughputcalc.firebaseio.com'})
+
 
         # platform
         self.pi = config.getboolean('platform', 'pi')
@@ -250,12 +254,20 @@ class CameraFeed:
 
         if not self.to_stdout:
             # compute throughput now
-            ctime = time.time()
+            # ctime = time.time()
+            # throughput = ctime - self.ptime
+            # self.ptime = ctime
+            ctime = self.camera.get(cv2.CAP_PROP_POS_MSEC)/1000
+            print("Collision recorded at "+str(ctime)+"s")
             throughput = ctime - self.ptime
-            self.ptime = ctime
+            self.ptime  = ctime
+            
 
-            if ( throughput != 0 ):
+            if ( throughput >= 5 and person.meta['line-0']=="north" ):
                 # push the data to the server
                 print("Throughput update %d" % (throughput))
+                ref = db.reference('NSIT').child('Jet Airways').child('carrier').child('1').update({
+                    'throughput' : throughput
+                    })
             
             print("NEW COLLISION %s HEADING %s" % (person.name, person.meta['line-0']))
