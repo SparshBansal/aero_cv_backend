@@ -65,13 +65,34 @@ class CameraFeed(QDialog):
         
         self.go()
 
-        # self.timer = QtCore.QTimer(self)
-        # self.timer.timeout.connect(self.update_frame)
-        # self.timer.start(5)
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.update_frame)
+        self.timer.start(5)
 
-    # def update_frame(self):
-    #     ret,self.image = self.camera.read()
-    #     self.image=cv2.flip(self.image,1)
+    def update_frame(self):
+
+        # self.go()
+        # feed in video
+        if self.pi:
+
+            for frame in self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True):
+
+                image = frame.array
+                self.process(image)
+                self.rawCapture.truncate(0)
+
+                if self.quit_after_first_frame or cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+        else:
+
+            if self.camera.isOpened():
+
+                rval, frame = self.camera.read()
+                self.origFrame  = frame
+                self.process(frame)
+
+        # ret,self.image = self.camera.read()
+        # self.image=cv2.flip(self.image,1)
 
         # if(self.f_Enabled):
         #     detected_image = self.detection_algo(self.image)
@@ -195,26 +216,27 @@ class CameraFeed(QDialog):
         self.ptime = time.time()
         self.pcount = 0
 
-        # feed in video
-        if self.pi:
+        # # feed in video
+        # if self.pi:
 
-            for frame in self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True):
+        #     for frame in self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True):
 
-                image = frame.array
-                self.process(image)
-                self.rawCapture.truncate(0)
+        #         image = frame.array
+        #         self.process(image)
+        #         self.rawCapture.truncate(0)
 
-                if self.quit_after_first_frame or cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-        else:
+        #         if self.quit_after_first_frame or cv2.waitKey(1) & 0xFF == ord('q'):
+        #             break
+        # else:
 
-            while self.camera.isOpened():
+        #     if self.camera.isOpened():
 
-                rval, frame = self.camera.read()
-                self.process(frame)
+        #         rval, frame = self.camera.read()
+        #         self.origFrame  = frame
+        #         self.process(frame)
 
-                if self.quit_after_first_frame or cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
+        #         # if self.quit_after_first_frame or cv2.waitKey(1) & 0xFF == ord('q'):
+        #         #     break
 
     def process(self, frame):
 
@@ -235,7 +257,7 @@ class CameraFeed(QDialog):
         frame = self.handle_the_people(frame)
         frame = self.render_hud(frame)
 
-        ret,image = self.camera.read()
+        # ret,image = self.camera.read()
         # self.image=cv2.flip(self.image,1)
 
 
@@ -243,7 +265,7 @@ class CameraFeed(QDialog):
         if(self.f_Enabled):
             self.displayImage(frame,1)
         else:
-            self.displayImage(image,1)
+            self.displayImage(self.origFrame,1)
 
         # if self.show_window:
         #     cv2.imshow('Camerafeed', frame)
