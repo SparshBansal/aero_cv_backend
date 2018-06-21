@@ -14,7 +14,14 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
 
-class CameraFeed:
+import argparse
+import imutils
+from PyQt5 import QtCore, QtGui
+from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtWidgets import QApplication,QDialog
+from PyQt5.uic import loadUi
+
+class CameraFeed(QDialog):
     # frame dimension (calculated below in go)
     _frame_width = 0
     _frame_height = 0
@@ -29,10 +36,68 @@ class CameraFeed:
 
         self.__dict__.update(locals())
 
+        #Initializer for UI
+        super(CameraFeed,self).__init__()
+        loadUi('airlines.ui',self)
+        self.image=None
+        self.startButton.clicked.connect(self.start_webcam)
+        self.stopButton.clicked.connect(self.stop_webcam)
+        self.detectButton.setCheckable(True)
+        self.detectButton.toggled.connect(self.detect_people)
+        self.f_Enabled=False
+
         # setup firebase credentials
         # cred = credentials.Certificate('/Users/newuser/Documents/People Tracking/aero_cv_backend/firebase_credentials.json')
         # default_app = firebase_admin.initialize_app(cred , {'databaseURL' : 'https://throughputcalc.firebaseio.com'})
+    
+    def detect_people(self,status):
+        if status:
+            self.detectButton.setText('Stop Detection')
+            self.f_Enabled = True
+        else:
+            self.detectButton.setText('Detect')
+            self.f_Enabled = False    
+
+    def start_webcam(self):
+        # self.capture=cv2.VideoCapture('/home/zero/1.MP4')
+        # self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT,281)
+        # self.capture.set(cv2.CAP_PROP_FRAME_WIDTH,371)
         
+        self.go()
+
+        # self.timer = QtCore.QTimer(self)
+        # self.timer.timeout.connect(self.update_frame)
+        # self.timer.start(5)
+
+    # def update_frame(self):
+    #     ret,self.image = self.camera.read()
+    #     self.image=cv2.flip(self.image,1)
+
+        # if(self.f_Enabled):
+        #     detected_image = self.detection_algo(self.image)
+        #     self.displayImage(detected_image,1)
+        # else:
+        #     self.displayImage(self.image,1)
+
+    def stop_webcam(self):
+        self.camera.release()
+        cv2.destroyAllWindows()
+        # self.timer.stop();
+
+    def displayImage(self,img,window=1):
+        qformat=QtGui.QImage.Format_Indexed8
+        if len(img.shape)==3 :
+            if img.shape[2]==4 :
+                qformat=QtGui.QImage.Format_RGBA8888
+            else:
+                qformat=QtGui.QImage.Format_RGB888
+        outImage = QtGui.QImage(img,img.shape[1],img.shape[0],img.strides[0],qformat)
+        outImage = outImage.rgbSwapped()
+
+        if window==1:
+            self.imgLabel.setPixmap(QtGui.QPixmap.fromImage(outImage))
+            self.imgLabel.setScaledContents(True)
+
 
     def go_config(self, config_path=None):
 
@@ -91,7 +156,7 @@ class CameraFeed:
         self.source = config.get('video_source', 'source')
         self.people_options = dict(config.items('person'))
 
-        self.go()
+        # self.go()
 
     def go(self):
 
@@ -170,8 +235,18 @@ class CameraFeed:
         frame = self.handle_the_people(frame)
         frame = self.render_hud(frame)
 
-        if self.show_window:
-            cv2.imshow('Camerafeed', frame)
+        ret,image = self.camera.read()
+        # self.image=cv2.flip(self.image,1)
+
+
+
+        if(self.f_Enabled):
+            self.displayImage(frame,1)
+        else:
+            self.displayImage(image,1)
+
+        # if self.show_window:
+        #     cv2.imshow('Camerafeed', frame)
 
         if self.to_stdout:
             sys.stdout.write(frame.tostring())
@@ -271,3 +346,10 @@ class CameraFeed:
                     })
             
             print("NEW COLLISION %s HEADING %s" % (person.name, person.meta['line-0']))
+
+# if( __name__=='____init____'):
+#     app=QApplication(sys.argv)
+#     widget=airlines()
+#     widget.setWindowTitle('Airlines GUI')
+#     widget.show()
+#     sys.exit(app.exec_())
