@@ -34,7 +34,7 @@ class CameraFeed:
         default_app = firebase_admin.initialize_app(cred , {'databaseURL' : 'https://throughputcalc.firebaseio.com'})
         
 
-    def go_config(self, config_path=None):
+    def setup_config(self, config_path=None):
 
         # load config
         config = configparser.ConfigParser()
@@ -87,9 +87,8 @@ class CameraFeed:
         self.source = config.get('video_source', 'source')
         self.people_options = dict(config.items('person'))
 
-        self.go()
 
-    def go(self):
+    def init_tracker(self):
 
         # setup HUD
         self.last_time = time.time()
@@ -100,24 +99,6 @@ class CameraFeed:
         # people tracking
         self.finder = PeopleTracker(people_options=self.people_options)
 
-        # STARTS HERE
-        # connect to camera
-        if self.pi:
-
-            from picamera.array import PiRGBArray
-            from picamera import PiCamera
-
-            self.camera = PiCamera()
-            self.camera.resolution = (640, 480)
-            self.camera.framerate = 20
-
-            self.rawCapture = PiRGBArray(self.camera, size=(640, 480))
-
-            time.sleep(1)  # let camera warm up
-
-        else:
-            self.camera = cv2.VideoCapture(self.source)
-
         # setup detectors
         self.hog = cv2.HOGDescriptor()
         self.hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
@@ -126,34 +107,13 @@ class CameraFeed:
         self.ptime = time.time()
         self.pcount = 0
 
-        # feed in video
-        if self.pi:
-
-            for frame in self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True):
-
-                image = frame.array
-                self.process(image)
-                self.rawCapture.truncate(0)
-
-                if self.quit_after_first_frame or cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-        else:
-
-            while self.camera.isOpened():
-
-                rval, frame = self.camera.read()
-                self.process(frame)
-
-                if self.quit_after_first_frame or cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
 
     def process(self, frame):
 
         if self.b_and_w:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
+        
         frame = self.crop_and_resize(frame)
-
         print_frame_size = self._frame_height == 0
 
         self._frame_height = frame.shape[0]
@@ -165,17 +125,8 @@ class CameraFeed:
         frame = self.apply_mog(frame)
         frame = self.handle_the_people(frame)
         frame = self.render_hud(frame)
-
-        if self.show_window:
-            cv2.imshow('Camerafeed', frame)
-
-        if self.to_stdout:
-            sys.stdout.write(frame.tostring())
-            # string = "".join(map(chr, frame.tostring()))
-            # sys.stdout.write(string)
-
-        if self.save_first_frame and self._frame == 0:
-            cv2.imwrite('first_frame.png', frame)
+        
+        return frame
 
     # help us crop/resize frames as they come in
     def crop_and_resize(self, frame):
