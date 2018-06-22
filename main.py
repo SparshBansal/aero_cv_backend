@@ -57,9 +57,20 @@ class airlines(QDialog):
         self.mCvthread.start()
     
         
-    def onFrameProcessed( self, upFrame, pFrame ):
+    def onFrameProcessed( self, upFrame, pFrame , lCount , throughput):
         if self.f_Enabled:
             self.displayImage(pFrame)
+            self.lcLabel.setText(str(lCount))
+            self.tLabel.setText(str(throughput))
+            avgt = lCount * throughput
+            self.tLabel.setText(str(avgt))
+            limit = self.ovLimit.text()
+            if lCount > limit:
+            	self.qStatusLabel.setStyleSheet('color: red')
+                self.qStatusLabel.setText('Overflow')
+            else:
+            	self.qStatusLabel.setStyleSheet('color: white')
+                self.qStatusLabel.setText('Normal')
         else:
             self.displayImage(upFrame)
 
