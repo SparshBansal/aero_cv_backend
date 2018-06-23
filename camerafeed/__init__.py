@@ -28,7 +28,7 @@ class CameraFeed:
                  save_first_frame=False, quit_after_first_frame=False):
 
         self.__dict__.update(locals())
-
+        self.throughput = 0
         # setup firebase credentials
         cred = credentials.Certificate('/home/sparsh/Camerafeed/firebase_credentials.json')
         default_app = firebase_admin.initialize_app(cred , {'databaseURL' : 'https://throughputcalc.firebaseio.com'})
@@ -208,5 +208,6 @@ class CameraFeed:
             if ( throughput != 0 ):
                 # push the data to the server
                 print("Throughput update %d" % (throughput))
+                self.throughput = throughput
             
             print("NEW COLLISION %s HEADING %s" % (person.name, person.meta['line-0']))

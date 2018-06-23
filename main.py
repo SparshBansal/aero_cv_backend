@@ -18,7 +18,7 @@ from cvthread import CVThread
 
 class airlines(QDialog):
 
-    onFrameProcessedSignal = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject')
+    onFrameProcessedSignal = pyqtSignal('PyQt_PyObject', 'PyQt_PyObject',int , float)
 
     def __init__(self):
         super(airlines,self).__init__()
