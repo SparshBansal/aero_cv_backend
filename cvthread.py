@@ -22,5 +22,6 @@ class CVThread ( QThread ):
         
         while( self.camera.isOpened() ):
             rval, frame = self.camera.read()
+            self.camerafeed.camera = self.camera;
             pFrame = self.camerafeed.process(frame)
             self.onFrameProcessedSignal.emit(frame, pFrame, self.camerafeed.pcount, self.camerafeed.throughput)

@@ -77,6 +77,8 @@ class airlines(QDialog):
 
     def stop_webcam(self):
         print "stopping background thread"
+        # self.camerafeed.camera.release()
+        # self.mCvthread.terminate()
 
     def displayImage(self,img,window=1):
         qformat=QtGui.QImage.Format_Indexed8

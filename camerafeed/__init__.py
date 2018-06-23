@@ -21,6 +21,7 @@ class CameraFeed:
 
     # how many frames processed
     _frame = 0
+    camera = cv2.VideoCapture()
 
     def __init__(self, source=0, crop_x1=0, crop_y1=0, crop_x2=500, crop_y2=500, max_width=640, b_and_w=False,
                  hog_win_stride=6, hog_padding=8, hog_scale=1.05, mog_enabled=False, people_options=None, lines=None,
@@ -30,7 +31,7 @@ class CameraFeed:
         self.__dict__.update(locals())
         self.throughput = 0
         # setup firebase credentials
-        cred = credentials.Certificate('/home/sparsh/Camerafeed/firebase_credentials.json')
+        cred = credentials.Certificate("firebase_credentials.json")
         default_app = firebase_admin.initialize_app(cred , {'databaseURL' : 'https://throughputcalc.firebaseio.com'})
         
 
@@ -104,7 +105,7 @@ class CameraFeed:
         self.hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
         # setup throughput info
-        self.ptime = time.time()
+        self.ptime = 0.0
         self.pcount = 0
 
 
@@ -201,13 +202,19 @@ class CameraFeed:
 
         if not self.to_stdout:
             # compute throughput now
-            ctime = time.time()
+            ctime = self.camera.get(cv2.CAP_PROP_POS_MSEC)/1000
+            print("Collision recorded at "+str(ctime)+"s")
             throughput = ctime - self.ptime
-            self.ptime = ctime
+            
+            
 
-            if ( throughput != 0 ):
+            if ( throughput >= 5 and person.meta['line-0']=="north" ):
                 # push the data to the server
+                self.ptime  = ctime
+                self.throughput = round(throughput, 2);
                 print("Throughput update %d" % (throughput))
-                self.throughput = throughput
+                ref = db.reference('NSIT').child('Jet Airways').child('carrier').child('1').update({
+                    'throughput' : throughput
+                    })
             
             print("NEW COLLISION %s HEADING %s" % (person.name, person.meta['line-0']))
