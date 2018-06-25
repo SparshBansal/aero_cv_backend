@@ -21,7 +21,6 @@ class CameraFeed:
 
     # how many frames processed
     _frame = 0
-    camera = cv2.VideoCapture()
 
     def __init__(self, source=0, crop_x1=0, crop_y1=0, crop_x2=500, crop_y2=500, max_width=640, b_and_w=False,
                  hog_win_stride=6, hog_padding=8, hog_scale=1.05, mog_enabled=False, people_options=None, lines=None,
