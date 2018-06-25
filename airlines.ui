@@ -274,12 +274,12 @@
     <string>Set OverFlow Limit</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="ovLimit">
+  <widget class="QSpinBox" name="ovLimit">
    <property name="geometry">
     <rect>
-     <x>600</x>
+     <x>590</x>
      <y>10</y>
-     <width>113</width>
+     <width>48</width>
      <height>27</height>
     </rect>
    </property>

@@ -63,20 +63,21 @@ class airlines(QDialog):
             self.lcLabel.setText(str(lCount))
             self.tLabel.setText(str(throughput))
             avgt = lCount * throughput
-            self.tLabel.setText(str(avgt))
-            limit = self.ovLimit.text()
+            ans_string = '{0:0.2f}'.format(avgt)
+            self.awtLabel.setText(ans_string)
+            limit = self.ovLimit.value()
             if lCount > limit:
-            	self.qStatusLabel.setStyleSheet('color: red')
-                self.qStatusLabel.setText('Overflow')
+            	self.qStatusLabel.setStyleSheet('color: white; background-color:red')
+            	self.qStatusLabel.setText('Overflow')
             else:
-            	self.qStatusLabel.setStyleSheet('color: white')
-                self.qStatusLabel.setText('Normal')
+            	self.qStatusLabel.setStyleSheet('color: white; background-color:green')
+            	self.qStatusLabel.setText('Normal')
         else:
             self.displayImage(upFrame)
 
 
     def stop_webcam(self):
-        print "stopping background thread"
+        print('stopping background thread')
         # self.camerafeed.camera.release()
         # self.mCvthread.terminate()
 
