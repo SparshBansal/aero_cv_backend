@@ -18,6 +18,9 @@ class CameraFeed:
     # frame dimension (calculated below in go)
     _frame_width = 0
     _frame_height = 0
+    airportName = 'Indira Gandhi International Airport'
+    flightName = 'Jet Airways'
+    counterNumber='1'
 
     # how many frames processed
     _frame = 0
@@ -29,6 +32,7 @@ class CameraFeed:
 
         self.__dict__.update(locals())
         self.throughput = 0
+
         # setup firebase credentials
         cred = credentials.Certificate("firebase_credentials.json")
         default_app = firebase_admin.initialize_app(cred , {'databaseURL' : 'https://throughputcalc.firebaseio.com'})
@@ -168,7 +172,7 @@ class CameraFeed:
         if ( len(people) != self.pcount ):
             if ( abs( self.pcount - len(people) ) > 3 ):
                 print "People Count  :  " , len(people)
-                ref = db.reference('NSIT').child('Jet Airways').child('carrier').child('1').update({
+                ref = db.reference(self.airportName).child(self.flightName).child('carrier').child(self.counterNumber).update({
                     'counterCount' : len(people)
                     })
                 self.pcount = len(people)
@@ -212,7 +216,7 @@ class CameraFeed:
                 self.ptime  = ctime
                 self.throughput = round(throughput, 2);
                 print("Throughput update %d" % (throughput))
-                ref = db.reference('NSIT').child('Jet Airways').child('carrier').child('1').update({
+                ref = db.reference(self.airportName).child(self.flightName).child('carrier').child(self.counterNumber).update({
                     'throughput' : throughput
                     })
             
