@@ -211,7 +211,7 @@ class CameraFeed:
             
             
 
-            if ( throughput >= 5 and person.meta['line-0']=="north" ):
+            if ( throughput >= 10 and person.meta['line-0']=="north" ):
                 # push the data to the server
                 self.ptime  = ctime
                 self.throughput = round(throughput, 2);
