@@ -5,6 +5,7 @@ from imutils import paths
 import numpy as np
 import argparse
 import imutils
+
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import pyqtSlot
@@ -78,8 +79,8 @@ class airlines(QDialog):
 
     def stop_webcam(self):
         print('stopping background thread')
-        # self.camerafeed.camera.release()
-        # self.mCvthread.terminate()
+        self.camerafeed.camera.release()
+        self.mCvthread.terminate()
 
     def displayImage(self,img,window=1):
         qformat=QtGui.QImage.Format_Indexed8
@@ -94,7 +95,7 @@ class airlines(QDialog):
         if window==1:
             self.imgLabel.setPixmap(QtGui.QPixmap.fromImage(outImage))
             self.imgLabel.setScaledContents(True)
-
+    
 
 if( __name__=='__main__'):
 

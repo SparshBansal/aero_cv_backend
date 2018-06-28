@@ -11,8 +11,8 @@ class CVThread ( QThread ):
 
     def __del__():
         self.wait()
-
-
+    
+    
     def run( self ):
         # Initialize tracker info
         self.camerafeed.init_tracker()
@@ -20,6 +20,13 @@ class CVThread ( QThread ):
         # Initialize camera source
         self.camera = cv2.VideoCapture(self.camerafeed.source)
         self.camerafeed.camera = self.camera;
+
+        frame_counter = 0;
+            
+        # skip frames for demo purposes
+        while ( frame_counter < 405 and self.camera.isOpened() ):
+            self.camera.read()
+            frame_counter += 1
 
         while( self.camera.isOpened() ):
             rval, frame = self.camera.read()
